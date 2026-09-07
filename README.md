@@ -76,6 +76,4 @@ pentru cursul curent, și varianta cu dată specifică (`@YYYY-MM-DD` în loc de
 
 Acest proiect a fost realizat ca exercițiu practic de dezvoltare asistată de AI (GitHub Copilot), parcurgând întregul flux: configurare mediu → prompt engineering → dezvoltare → testare → versionare (branch/commit/push) → deploy.
 
-## 📄 Licență
 
-[adaugă licența dorită, ex: MIT]
