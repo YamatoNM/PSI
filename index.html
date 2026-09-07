@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Currency Exchange</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- ===== Animated inline-SVG background (decorative, non-interactive) ===== -->
+  <svg class="bg" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice"
+       xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+    <defs>
+      <linearGradient id="blobA" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#6366f1" />
+        <stop offset="100%" stop-color="#22d3ee" />
+      </linearGradient>
+      <linearGradient id="blobB" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#ec4899" />
+        <stop offset="100%" stop-color="#f59e0b" />
+      </linearGradient>
+    </defs>
+
+    <!-- Soft drifting blobs -->
+    <path class="blob blob-a" fill="url(#blobA)" d="M420,110c70,40,110,150,70,240s-160,140-260,110S60,300,110,210 220,60 320,60 350,70 420,110Z" />
+    <path class="blob blob-b" fill="url(#blobB)" d="M980,520c50,60,40,180-40,240s-220,40-290-40-60-210,10-280 130-110 210,-70 60,90 100,150Z" />
+    <circle class="blob blob-c" fill="url(#blobA)" cx="1000" cy="150" r="150" />
+
+    <!-- Gently floating currency symbols -->
+    <text class="coin coin-1" x="150" y="640">€</text>
+    <text class="coin coin-2" x="880" y="180">$</text>
+    <text class="coin coin-3" x="620" y="720">£</text>
+    <text class="coin coin-4" x="1080" y="560">¥</text>
+    <text class="coin coin-5" x="330" y="240">$</text>
+  </svg>
+
+  <main class="card">
+    <h1>Currency Exchange</h1>
+
+    <form id="converter" class="converter" autocomplete="off">
+      <!-- Amount to convert -->
+      <div class="field">
+        <label for="amount">Amount</label>
+        <input
+          type="number"
+          id="amount"
+          name="amount"
+          value="1"
+          min="0"
+          step="any"
+          inputmode="decimal"
+          required
+        />
+      </div>
+
+      <!-- From currency: default quick buttons + favorites + full list -->
+      <div class="field currency-picker">
+        <label for="from">From currency</label>
+        <div class="quick-row" id="from-quick" role="group" aria-label="Common base currencies"></div>
+        <div class="quick-row fav-row" id="from-fav" role="group" aria-label="Favorite base currencies" hidden></div>
+        <button type="button" class="more-toggle" data-target="from" aria-expanded="false" aria-controls="from-panel">
+          More currencies &#9662;
+        </button>
+        <div class="more-panel" id="from-panel" data-side="from" hidden>
+          <label class="sr-only" for="from">All base currencies</label>
+          <select id="from" name="from" class="full-select"></select>
+          <input type="search" class="currency-filter" id="from-filter"
+                 placeholder="Filter currencies…" aria-label="Filter base currency list" />
+          <ul class="currency-list" id="from-list" aria-label="All currencies — pick or star as favorite"></ul>
+        </div>
+      </div>
+
+      <!-- Swap -->
+      <div class="swap-wrap">
+        <button type="button" id="swap" class="swap" title="Swap currencies" aria-label="Swap From and To currencies">
+          &#8646;
+        </button>
+      </div>
+
+      <!-- To currency: default quick buttons + favorites + full list -->
+      <div class="field currency-picker">
+        <label for="to">To currency</label>
+        <div class="quick-row" id="to-quick" role="group" aria-label="Common target currencies"></div>
+        <div class="quick-row fav-row" id="to-fav" role="group" aria-label="Favorite target currencies" hidden></div>
+        <button type="button" class="more-toggle" data-target="to" aria-expanded="false" aria-controls="to-panel">
+          More currencies &#9662;
+        </button>
+        <div class="more-panel" id="to-panel" data-side="to" hidden>
+          <label class="sr-only" for="to">All target currencies</label>
+          <select id="to" name="to" class="full-select"></select>
+          <input type="search" class="currency-filter" id="to-filter"
+                 placeholder="Filter currencies…" aria-label="Filter target currency list" />
+          <ul class="currency-list" id="to-list" aria-label="All currencies — pick or star as favorite"></ul>
+        </div>
+      </div>
+    </form>
+
+    <!-- Loading indicator (screen readers hear it via role=status) -->
+    <p id="loading" class="loading" role="status" hidden>
+      <span class="spinner" aria-hidden="true"></span> Fetching latest rates&hellip;
+    </p>
+
+    <!-- Offline / stale-cache warning -->
+    <p id="offline" class="offline" role="alert" hidden></p>
+
+    <!-- Conversion result — announced politely on update -->
+    <section id="result" class="result" aria-live="polite">
+      <p class="result-main" id="result-main">&mdash;</p>
+      <p class="reverse" id="reverse" hidden></p>
+      <p class="result-date" id="result-date"></p>
+    </section>
+
+    <!-- Historical trend mini-chart -->
+    <section class="trend" id="trend" aria-label="Historical trend">
+      <div class="trend-head">
+        <span class="trend-title">Trend</span>
+        <div class="trend-range" role="group" aria-label="Trend range">
+          <button type="button" class="trend-range-btn active" data-days="7" aria-pressed="true">7d</button>
+          <button type="button" class="trend-range-btn" data-days="30" aria-pressed="false">30d</button>
+        </div>
+      </div>
+      <div class="trend-body" id="trend-body"></div>
+      <p class="trend-meta" id="trend-meta"></p>
+      <p class="sr-only" id="trend-sr"></p>
+    </section>
+
+    <!-- Hard error message (no data and no cache) -->
+    <p id="error" class="error" role="alert" hidden></p>
+  </main>
+
+  <!-- config.js is imported by script.js; serve this page over http:// (e.g. Live Server) -->
+  <script type="module" src="script.js"></script>
+</body>
+</html>
